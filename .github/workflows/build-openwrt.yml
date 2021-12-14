@@ -71,8 +71,8 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
         
-    - name: SSH connection to Actions
-      uses: P3TERX/ssh2actions@main
+    #- name: SSH connection to Actions
+     # uses: P3TERX/ssh2actions@main
 
     - name: Download package
       id: package
