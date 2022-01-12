@@ -50,6 +50,9 @@ jobs:
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
+        cd openwrt/package
+        git clone https://github.com/OpenWrt-Actions/OpenWrt-Packages
+        cd .. && cd ..
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
     - name: Load custom feeds
       run: |
@@ -63,16 +66,16 @@ jobs:
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: Load custom configuration
-      run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_P2_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+    #- name: Load custom configuration
+     # run: |
+        #[ -e files ] && mv files openwrt/files
+        #[ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        #chmod +x $DIY_P2_SH
+        #cd openwrt
+        #$GITHUB_WORKSPACE/$DIY_P2_SH
         
-    - name: SSH connection to Actions
-      uses: P3TERX/ssh2actions@main
+    #- name: SSH connection to Actions
+     # uses: P3TERX/ssh2actions@main
 
     - name: Download package
       id: package
