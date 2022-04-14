@@ -12,7 +12,7 @@ on:
         default: 'false'
 
 env:
-  REPO_URL: https://github.com/monw/lede
+  REPO_URL: https://github.com/monw/my_router_ax1800
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
@@ -49,48 +49,16 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
-        cd openwrt/package
-        git clone https://github.com/OpenWrt-Actions/OpenWrt-Packages
-        cd .. && cd ..
+        git clone $REPO_URL --depth=1 -b $REPO_BRANCH openwrt
+        #cd openwrt/package
+        #git clone https://github.com/OpenWrt-Actions/OpenWrt-Packages
+        #cd .. && cd ..
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-    - name: Load custom feeds
-      run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
-    - name: Update feeds
-      run: cd openwrt && ./scripts/feeds update -a
-
-    - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
-
-    #- name: Load custom configuration
-     # run: |
-        #[ -e files ] && mv files openwrt/files
-        #[ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        #chmod +x $DIY_P2_SH
-        #cd openwrt
-        #$GITHUB_WORKSPACE/$DIY_P2_SH
-        
-    #- name: SSH connection to Actions
-     # uses: P3TERX/ssh2actions@main
-
-    - name: Download package
-      id: package
-      run: |
-        cd openwrt
-        make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+    
     - name: Compile the firmware
       id: compile
       run: |
-        cd openwrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        sh openwrt/mtk-openwrt-lede-4.2.0.0/autobuild/mt7621-Harrier-SLT/lede-branch-build-sanity.sh
         echo "::set-output name=status::success"
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
@@ -104,13 +72,13 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin
+        path: openwrt/mtk-openwrt-lede-4.2.0.0/bin
 
     - name: Organize files
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        cd openwrt/bin/targets/*/*
+        cd openwrt/mtk-openwrt-lede-4.2.0.0/bin/targets/*/*
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
